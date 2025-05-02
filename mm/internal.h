@@ -14,12 +14,6 @@
 #include <linux/tracepoint-defs.h>
 
 struct folio_batch;
-#ifdef CONFIG_BLOCKIO_UX_OPT
-bool mem_available_is_low(void);
-void set_fileprotect_page(struct folio *folio);
-bool mapping_protect(struct address_space *mapping);
-bool should_be_protect(struct folio *folio, bool mem_is_low);
-#endif
 
 /*
  * The set of flags that only affect watermark checking and reclaim
@@ -57,6 +51,25 @@ bool should_be_protect(struct folio *folio, bool mem_is_low);
 })
 
 void page_writeback_init(void);
+
+/*
+ * This is a file-backed mapping, and is about to be memory mapped - invoke its
+ * mmap hook and safely handle error conditions. On error, VMA hooks will be
+ * mutated.
+ *
+ * @file: File which backs the mapping.
+ * @vma:  VMA which we are mapping.
+ *
+ * Returns: 0 if success, error otherwise.
+ */
+int mmap_file(struct file *file, struct vm_area_struct *vma);
+
+/*
+ * If the VMA has a close hook then close it, and since closing it might leave
+ * it in an inconsistent state which makes the use of any hooks suspect, clear
+ * them down by installing dummy empty hooks.
+ */
+void vma_close(struct vm_area_struct *vma);
 
 static inline void *folio_raw_mapping(struct folio *folio)
 {
@@ -763,8 +776,13 @@ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
 #define ALLOC_OOM		ALLOC_NO_WATERMARKS
 #endif
 
-#define ALLOC_HARDER		 0x10 /* try to alloc harder */
-#define ALLOC_HIGH		 0x20 /* __GFP_HIGH set */
+#define ALLOC_NON_BLOCK		 0x10 /* Caller cannot block. Allow access
+				       * to 25% of the min watermark or
+				       * 62.5% if __GFP_HIGH is set.
+				       */
+#define ALLOC_MIN_RESERVE	 0x20 /* __GFP_HIGH set. Allow access to 50%
+				       * of the min watermark.
+				       */
 #define ALLOC_CPUSET		 0x40 /* check for correct cpuset */
 #define ALLOC_CMA		 0x80 /* allow allocations from CMA areas */
 #ifdef CONFIG_ZONE_DMA32
@@ -772,7 +790,11 @@ unsigned int reclaim_clean_pages_from_list(struct zone *zone,
 #else
 #define ALLOC_NOFRAGMENT	  0x0
 #endif
+#define ALLOC_HIGHATOMIC	0x200 /* Allows access to MIGRATE_HIGHATOMIC */
 #define ALLOC_KSWAPD		0x800 /* allow waking of kswapd, __GFP_KSWAPD_RECLAIM set */
+
+/* Flags that allow allocations below the min watermark. */
+#define ALLOC_RESERVES (ALLOC_NON_BLOCK|ALLOC_MIN_RESERVE|ALLOC_HIGHATOMIC|ALLOC_OOM)
 
 enum ttu_flags;
 struct tlbflush_unmap_batch;
@@ -876,34 +898,4 @@ static inline bool vma_soft_dirty_enabled(struct vm_area_struct *vma)
 	return !(vma->vm_flags & VM_SOFTDIRTY);
 }
 
-#ifdef CONFIG_OPLUS_FEATURE_UXMEM_OPT
-enum POOL_MIGRATETYPE {
-	POOL_MIGRATETYPE_UNMOVABLE,
-	POOL_MIGRATETYPE_MOVABLE,
-	POOL_MIGRATETYPE_TYPES_SIZE
-};
-struct ux_page_pool {
-	int low[POOL_MIGRATETYPE_TYPES_SIZE];
-	int high[POOL_MIGRATETYPE_TYPES_SIZE];
-	int count[POOL_MIGRATETYPE_TYPES_SIZE];
-	struct list_head items[POOL_MIGRATETYPE_TYPES_SIZE];
-	spinlock_t lock;
-	unsigned int order;
-	gfp_t gfp_mask;
-};
-
-bool uxmempool_refill(struct page *page, unsigned int order, int migratetype);
-void fill_pcplist_from_uxmempool(struct zone *zone, unsigned int order,
-		struct per_cpu_pages *pcp, int migratetype, struct list_head *list);
-struct page * get_page_from_uxmempool(gfp_t gfp_mask, unsigned int order, int migratetype);
-bool uxmem_should_alloc_pages_retry(gfp_t gfp_mask, unsigned int *alloc_flags,
-		struct zone *preferred_zone);
-bool uxmem_kvmalloc_check_use_vmalloc(size_t size, gfp_t *kmalloc_flags);
-void uxmempool_meminfo_adjust(struct sysinfo *val);
-#endif /* CONFIG_OPLUS_FEATURE_UXMEM_OPT */
-
-#ifdef CONFIG_OPLUS_FEATURE_DYNAMIC_READAHEAD
-void adjust_readaround(struct file_ra_state *ra, pgoff_t pgoff);
-unsigned long adjust_readahead(struct file_ra_state *ra, unsigned long max_pages);
-#endif /* CONFIG_OPLUS_FEATURE_DYNAMIC_READAHEAD */
 #endif	/* __MM_INTERNAL_H */
