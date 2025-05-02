@@ -5687,7 +5687,7 @@ static int reserve_compress_blocks(struct dnode_of_data *dn, pgoff_t count)
 
 	while (count) {
 		int compr_blocks = 0;
-		blkcnt_t reserved;
+		blkcnt_t reserved = 0;
 		blkcnt_t to_reserved;
 		int ret;
 

@@ -450,26 +450,6 @@ static struct request *__blk_mq_alloc_requests(struct blk_mq_alloc_data *data)
 
 	if (data->cmd_flags & REQ_NOWAIT)
 		data->flags |= BLK_MQ_REQ_NOWAIT;
-retry:
-	data->ctx = blk_mq_get_ctx(q);
-	data->hctx = blk_mq_map_queue(q, data->cmd_flags, data->ctx);
-
-	if (q->elevator) {
-		struct elevator_queue *e = q->elevator;
-
-		data->rq_flags |= RQF_ELV;
-
-		/*
-		 * Flush/passthrough requests are special and go directly to the
-		 * dispatch list. Don't include reserved tags in the
-		 * limiting, as it isn't useful.
-		 */
-		if (!op_is_flush(data->cmd_flags) &&
-		    !blk_op_is_passthrough(data->cmd_flags) &&
-		    e->type->ops.limit_depth &&
-		    !(data->flags & BLK_MQ_REQ_RESERVED))
-			limit_depth = e->type->ops.limit_depth;
-	}
 
 retry:
 	data->ctx = blk_mq_get_ctx(q);

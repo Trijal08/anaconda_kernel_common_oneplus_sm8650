@@ -267,7 +267,7 @@ retry:
 			new_seqzone_index = re->old_seqzone_index;
 #endif
 
-		err = inc_valid_block_count(sbi, inode, &count);
+		err = inc_valid_block_count(sbi, inode, &count, true);
 		if (err) {
 			f2fs_put_dnode(&dn);
 			return err;
