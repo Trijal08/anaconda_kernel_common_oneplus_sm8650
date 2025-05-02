@@ -405,6 +405,7 @@
   device_create_with_groups
   device_del
   device_destroy
+  device_find_any_child
   device_find_child
   device_find_child_by_name
   device_for_each_child
@@ -515,6 +516,7 @@
   devm_memremap
   devm_mfd_add_devices
   devm_nvmem_cell_get
+  devm_nvmem_cell_put
   devm_nvmem_device_get
   devm_nvmem_register
   devm_of_icc_get
@@ -983,6 +985,7 @@
   fsg_common_set_inquiry_string
   fsg_common_set_sysfs
   fsg_config_from_params
+  fw_devlink_purge_absent_suppliers
   fwnode_device_is_available
   fwnode_get_name
   fwnode_get_next_available_child_node
@@ -1657,7 +1660,14 @@
   net_selftest_get_count
   net_selftest_get_strings
   nf_conntrack_destroy
+  nfnetlink_subsys_register
+  nfnetlink_subsys_unregister
+  nfnetlink_unicast
+  nfnl_lock
+  nfnl_unlock
   nf_register_net_hooks
+  nf_sk_lookup_slow_v4
+  nf_sk_lookup_slow_v6
   nf_unregister_net_hooks
   nla_find
   nla_memcpy
@@ -2997,6 +3007,7 @@
   typec_partner_set_identity
   typec_partner_set_pd_revision
   typec_partner_set_svdm_version
+  typec_port_register_altmodes
   typec_register_partner
   typec_register_port
   typec_set_data_role
@@ -3415,6 +3426,36 @@
   ww_mutex_unlock
   __xa_alloc
   xa_erase
+  xdp_convert_zc_to_xdp_frame
+  xdp_do_flush
+  xdp_do_redirect
+  xdp_master_redirect
+  xdp_return_frame
+  xdp_return_frame_rx_napi
+  xdp_rxq_info_is_reg
+  __xdp_rxq_info_reg
+  xdp_rxq_info_reg_mem_model
+  xdp_rxq_info_unreg
+  xdp_rxq_info_unreg_mem_model
+  xdp_warn
+  xp_alloc
+  xp_dma_map
+  xp_dma_sync_for_cpu_slow
+  xp_dma_sync_for_device_slow
+  xp_dma_unmap
+  xp_free
+  xp_raw_get_dma
+  xp_set_rxq_info
+  xsk_clear_rx_need_wakeup
+  xsk_get_pool_from_qid
+  xsk_set_rx_need_wakeup
+  xsk_set_tx_need_wakeup
+  xsk_tx_completed
+  xsk_tx_peek_desc
+  xsk_tx_release
+  xsk_uses_need_wakeup
+  xt_register_matches
+  xt_unregister_matches
   zlib_deflate
   zlib_deflateEnd
   zlib_deflateInit2
